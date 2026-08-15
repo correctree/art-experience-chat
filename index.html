@@ -412,6 +412,83 @@
     .error{color:#a82b25}
 
     /* ---------- composer ---------- */
+
+    .artwork-panel{
+      display:none;
+      align-items:center;
+      gap:12px;
+      margin:0 0 10px;
+      padding:10px 12px;
+      border:1px solid var(--hair);
+      border-radius:18px;
+      background:rgba(255,255,255,.5);
+      backdrop-filter:blur(14px);
+    }
+    .artwork-panel.active{display:flex}
+    .artwork-thumb{
+      width:62px;
+      height:62px;
+      object-fit:cover;
+      border-radius:12px;
+      border:1px solid var(--hair);
+      background:#fff;
+      flex:0 0 auto;
+    }
+    .artwork-meta{
+      min-width:0;
+      flex:1;
+      display:grid;
+      gap:3px;
+    }
+    .artwork-meta strong{
+      font-size:12px;
+      font-weight:700;
+    }
+    .artwork-meta span{
+      font-size:10px;
+      color:var(--muted);
+      line-height:1.5;
+    }
+    .artwork-remove{
+      border:0;
+      background:transparent;
+      width:30px;
+      height:30px;
+      border-radius:50%;
+      cursor:pointer;
+      font-size:16px;
+    }
+    .artwork-remove:hover{background:rgba(0,0,0,.06)}
+    .composer-tools{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:9px;
+    }
+    .upload-btn{
+      border:1px solid var(--hair);
+      background:rgba(255,255,255,.42);
+      border-radius:999px;
+      padding:8px 12px;
+      cursor:pointer;
+      font-size:11px;
+      color:#514e48;
+      transition:.2s var(--ease);
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+    }
+    .upload-btn:hover{background:#fff;transform:translateY(-1px)}
+    .viewing-badge{
+      display:none;
+      font-size:10px;
+      letter-spacing:.08em;
+      color:#514e48;
+    }
+    .viewing-badge.active{display:block}
+    .hidden-file{display:none}
+
     .composer{
       position:relative;
       padding:12px clamp(22px,5vw,72px) 22px;
@@ -593,6 +670,21 @@
       <div id="messages"></div>
 
       <div class="composer">
+        <div class="artwork-panel" id="artworkPanel">
+          <img class="artwork-thumb" id="artworkThumb" alt="アップロードした成果">
+          <div class="artwork-meta">
+            <strong>体験の成果を鑑賞中</strong>
+            <span>この画像を見ながら、AIと対話を続けます。</span>
+          </div>
+          <button class="artwork-remove" id="artworkRemove" aria-label="画像を外す">×</button>
+        </div>
+
+        <div class="composer-tools">
+          <label class="upload-btn" for="artworkInput">＋ 成果を見せる</label>
+          <span class="viewing-badge" id="viewingBadge">DIALOGUE VIEWING MODE</span>
+          <input class="hidden-file" id="artworkInput" type="file" accept="image/jpeg,image/png,image/webp">
+        </div>
+
         <div class="chips" id="chips">
           <button class="chip" data-text="今日は静かに過ごしたいです">静かに過ごしたい</button>
           <button class="chip" data-text="何か新しい刺激がほしいです">新しい刺激がほしい</button>
@@ -615,9 +707,16 @@ const inputEl = document.getElementById("input");
 const sendBtn = document.getElementById("sendBtn");
 const resetBtn = document.getElementById("resetBtn");
 const chipsEl = document.getElementById("chips");
+const artworkInput = document.getElementById("artworkInput");
+const artworkPanel = document.getElementById("artworkPanel");
+const artworkThumb = document.getElementById("artworkThumb");
+const artworkRemove = document.getElementById("artworkRemove");
+const viewingBadge = document.getElementById("viewingBadge");
 
 let history = [];
 let busy = false;
+let artworkData = "";
+let artworkName = "";
 
 function esc(s=""){
   return String(s).replace(/[&<>"']/g, c => ({
@@ -827,7 +926,8 @@ async function sendMessage(){
             timeZoneName: "short"
           }).format(new Date()),
           timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || ""
-        }
+        },
+        artwork: artworkData || ""
       })
     });
 
@@ -854,6 +954,7 @@ async function sendMessage(){
 function start(){
   messagesEl.innerHTML = "";
   history = [];
+  clearArtwork();
   chipsEl.style.display = "flex";
   addMessage("assistant",
 `こんにちは。今のあなたに合うアート体験を一緒に探します。
@@ -904,6 +1005,81 @@ function applyArtCompassImages(){
 }
 
 applyArtCompassImages();
+
+
+async function fileToOptimizedDataURL(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onerror = ()=>reject(new Error("画像を読み込めませんでした。"));
+    reader.onload = ()=>{
+      const img = new Image();
+      img.onerror = ()=>reject(new Error("画像形式を確認してください。"));
+      img.onload = ()=>{
+        const maxSide = 1600;
+        let w = img.width;
+        let h = img.height;
+        const scale = Math.min(1, maxSide / Math.max(w,h));
+        w = Math.max(1, Math.round(w * scale));
+        h = Math.max(1, Math.round(h * scale));
+
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img,0,0,w,h);
+
+        const mime = file.type === "image/png" ? "image/png" : "image/jpeg";
+        const quality = mime === "image/png" ? undefined : .88;
+        resolve(canvas.toDataURL(mime, quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function setArtwork(file){
+  if(!file) return;
+
+  if(!["image/jpeg","image/png","image/webp"].includes(file.type)){
+    alert("JPEG / PNG / WebP の画像を選んでください。");
+    return;
+  }
+
+  try{
+    const data = await fileToOptimizedDataURL(file);
+    artworkData = data;
+    artworkName = file.name || "artwork";
+    artworkThumb.src = data;
+    artworkPanel.classList.add("active");
+    viewingBadge.classList.add("active");
+    chipsEl.style.display = "none";
+
+    if(!inputEl.value.trim()){
+      inputEl.value = "この体験の成果について、一緒に見ながら対話したいです。";
+      inputEl.dispatchEvent(new Event("input"));
+    }
+    inputEl.focus();
+  }catch(err){
+    alert(err.message || "画像を読み込めませんでした。");
+  }
+}
+
+function clearArtwork(){
+  artworkData = "";
+  artworkName = "";
+  artworkInput.value = "";
+  artworkThumb.removeAttribute("src");
+  artworkPanel.classList.remove("active");
+  viewingBadge.classList.remove("active");
+}
+
+artworkInput.addEventListener("change", e=>{
+  const file = e.target.files && e.target.files[0];
+  setArtwork(file);
+});
+
+artworkRemove.addEventListener("click", clearArtwork);
 
 start();
 

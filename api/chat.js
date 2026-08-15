@@ -90,6 +90,34 @@ Markdownで次の形式を使う。
 ユーザーが選びやすい一言を添える。
 
 - まだ提案に必要な情報が不足している場合は、無理に3案を出さず質問を続ける。
+
+【成果画像が送られた場合：対話型鑑賞モード】
+成果画像が入力に含まれている場合は、通常のアート体験提案より「対話型鑑賞」を優先する。
+
+基本姿勢：
+- 作品を採点・評価しない。
+- すぐに「意味」や「作者の意図」を決めつけない。
+- AIが一方的に解説するのではなく、ユーザー自身の観察と言葉を引き出す。
+- 画像から確認できることと、推測・解釈を明確に分ける。
+- 一度に質問は原則1つだけ。
+- ユーザーの発言を受けて、次の問いを少しずつ深める。
+- 「正解」を探させない。
+
+対話の流れ：
+1. 観察：色、形、配置、質感、光、反復、余白などから、まず一つ具体的に気づきを共有する。
+2. 問い：その観察を入口に、ユーザーが見えているもの・感じたものを言葉にできる開かれた質問を1つする。
+3. 関係づけ：ユーザーが体験中にした行為、選択、場所、気分との関係を尋ねる。
+4. 意味生成：十分に対話した後で、「この成果はあなたにとって何を残しているか」を一緒に考える。
+5. 次の体験：ユーザーが望む場合のみ、次のアート体験への小さな橋を提案する。
+
+最初の返答の例：
+「画像を見ると、○○と○○の関係がまず目に入ります。これは見えている特徴として言えます。あなた自身は、この成果の中で最初に目が行くところはどこですか？」
+
+避けること：
+- 「この作品は〜を象徴しています」と断定する。
+- 美術史的な分類を必要以上に先行させる。
+- ユーザーがまだ語っていない感情や意図を推測して事実のように述べる。
+- 一度に複数の質問を並べる。
 `;
 
 function safeMessages(value) {
@@ -171,6 +199,42 @@ ${timeInfo || "現在時刻情報は取得できていません。必要なら�
 `;
 }
 
+
+function safeArtwork(value) {
+  if (typeof value !== "string") return "";
+  if (!/^data:image\/(jpeg|png|webp);base64,/i.test(value)) return "";
+  // Keep request size bounded.
+  if (value.length > 8_000_000) return "";
+  return value;
+}
+
+function buildModelInput(messages, artwork) {
+  if (!artwork) return messages;
+
+  const input = messages.map((m) => ({ ...m }));
+  let lastUserIndex = -1;
+
+  for (let i = input.length - 1; i >= 0; i--) {
+    if (input[i].role === "user") {
+      lastUserIndex = i;
+      break;
+    }
+  }
+
+  if (lastUserIndex === -1) return input;
+
+  const text = input[lastUserIndex].content || "この成果について対話したいです。";
+  input[lastUserIndex] = {
+    role: "user",
+    content: [
+      { type: "input_text", text },
+      { type: "input_image", image_url: artwork, detail: "auto" }
+    ]
+  };
+
+  return input;
+}
+
 function extractAnswerAndSources(data) {
   let answer = "";
   const sources = [];
@@ -235,6 +299,7 @@ export default async function handler(req, res) {
 
     const messages = safeMessages(body.messages);
     const clientContext = safeClientContext(body.clientContext);
+    const artwork = safeArtwork(body.artwork);
 
     if (!messages.length) {
       return res.status(400).json({
@@ -254,7 +319,7 @@ export default async function handler(req, res) {
           effort: "low"
         },
         instructions: buildRuntimeInstructions(clientContext),
-        input: messages,
+        input: buildModelInput(messages, artwork),
         tools: [
           {
             type: "web_search",
