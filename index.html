@@ -692,10 +692,10 @@
         </div>
 
         <div class="input-wrap">
-          <textarea id="input" rows="1" placeholder="今の気分や、使える時間、いる場所などを自由に話してください。"></textarea>
+          <textarea id="input" rows="1" placeholder="今の気分や、使える時間、いる場所などを自由に話してください。送信は右のボタンから。 "></textarea>
           <button class="send" id="sendBtn" aria-label="送信">送信</button>
         </div>
-        <div class="hint">ENTER TO SEND · SHIFT + ENTER FOR NEW LINE</div>
+        
       </div>
     </main>
   </div>
@@ -964,12 +964,6 @@ function start(){
 }
 
 sendBtn.addEventListener("click", sendMessage);
-inputEl.addEventListener("keydown", e => {
-  if(e.key === "Enter" && !e.shiftKey){
-    e.preventDefault();
-    sendMessage();
-  }
-});
 inputEl.addEventListener("input", () => {
   inputEl.style.height = "auto";
   inputEl.style.height = Math.min(inputEl.scrollHeight,120) + "px";
