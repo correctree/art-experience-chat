@@ -3,211 +3,625 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Art Experience Chat</title>
-  <meta name="description" content="対話から、あなたに合ったアート体験を提案します。" />
+  <title>ART COMPASS — Art Experience Chat</title>
+  <meta name="description" content="対話から、今のあなたに合うアート体験を提案します。" />
   <style>
     :root{
-      --bg:#f3f0ea; --panel:#fff; --ink:#191919; --muted:#6c6b68;
-      --line:#e7e2da; --accent:#2256d8; --soft:#f7f6f3;
-      --shadow:0 18px 55px rgba(0,0,0,.08);
+      --paper:#f3f0e9;
+      --ink:#11110f;
+      --muted:#77736c;
+      --hair:rgba(17,17,15,.13);
+      --glass:rgba(247,244,237,.72);
+      --deep:#171713;
+      --radius:28px;
+      --ease:cubic-bezier(.22,.8,.24,1);
     }
+
     *{box-sizing:border-box}
     html,body{height:100%;margin:0}
     body{
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;
-      background:
-        radial-gradient(circle at 10% 0%,#fff 0,transparent 28%),
-        radial-gradient(circle at 90% 0%,#e9efff 0,transparent 28%),
-        var(--bg);
       color:var(--ink);
+      background:var(--paper);
+      font-family:
+        "Helvetica Neue",
+        "Hiragino Sans",
+        "Yu Gothic",
+        "Noto Sans JP",
+        sans-serif;
       overflow:hidden;
     }
-    button,input,textarea{font:inherit}
-    .app{
+
+    button,textarea{font:inherit}
+    button{color:inherit}
+
+    .shell{
       height:100dvh;
       display:grid;
-      grid-template-columns:290px minmax(0,1fr);
+      grid-template-columns:minmax(280px,34vw) minmax(0,1fr);
       overflow:hidden;
+      background:
+        radial-gradient(circle at 76% 4%, rgba(255,255,255,.72), transparent 26%),
+        var(--paper);
     }
-    aside{
+
+    /* ---------- left sensory panel ---------- */
+    .sensor{
+      position:relative;
+      overflow:hidden;
       min-height:0;
-      overflow:auto;
-      padding:28px 22px;
-      border-right:1px solid var(--line);
-      background:rgba(255,255,255,.72);
-      backdrop-filter:blur(14px);
+      border-right:1px solid var(--hair);
+      background:#171713;
+      color:#f5f2e9;
+      padding:30px;
+      display:flex;
+      flex-direction:column;
+      isolation:isolate;
     }
-    .mark{
-      width:50px;height:50px;border-radius:15px;display:grid;place-items:center;
-      background:linear-gradient(135deg,#2c5ee0,#8458e8);color:#fff;font-size:22px;
-      margin-bottom:18px;
+
+    .sensor::before{
+      content:"";
+      position:absolute;
+      inset:-20%;
+      background:
+        radial-gradient(circle at 32% 28%, rgba(214,238,255,.72) 0 4%, transparent 21%),
+        radial-gradient(circle at 68% 58%, rgba(255,175,143,.78) 0 5%, transparent 28%),
+        radial-gradient(circle at 44% 76%, rgba(172,153,255,.62) 0 5%, transparent 26%),
+        radial-gradient(circle at 76% 20%, rgba(227,255,175,.32) 0 4%, transparent 24%);
+      filter:blur(10px);
+      transform:scale(1.18);
+      animation:drift 17s ease-in-out infinite alternate;
+      z-index:-2;
     }
-    h1{font-size:23px;line-height:1.2;margin:0 0 10px}
-    .lead{font-size:14px;line-height:1.7;color:var(--muted);margin:0 0 28px}
-    .guide{
-      border:1px solid var(--line);background:#fff;border-radius:16px;padding:16px;
-      font-size:13px;line-height:1.7;color:var(--muted)
+
+    .sensor::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      opacity:.11;
+      z-index:-1;
+      background-image:
+        linear-gradient(rgba(255,255,255,.25) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.25) 1px,transparent 1px);
+      background-size:42px 42px;
+      mask-image:linear-gradient(to bottom,black,transparent 76%);
     }
-    .guide strong{display:block;color:var(--ink);margin-bottom:6px}
-    .status{
-      margin-top:18px;padding:12px 14px;border-radius:14px;background:#f9f8f5;
-      color:var(--muted);font-size:12px;line-height:1.6
+
+    @keyframes drift{
+      0%{transform:translate(-3%,-2%) scale(1.12) rotate(-2deg)}
+      50%{transform:translate(4%,3%) scale(1.24) rotate(3deg)}
+      100%{transform:translate(-1%,6%) scale(1.17) rotate(-1deg)}
     }
+
+    .brand{
+      position:relative;
+      z-index:2;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:20px;
+    }
+
+    .brand-name{
+      font-size:12px;
+      letter-spacing:.18em;
+      font-weight:700;
+    }
+
+    .brand-no{
+      font-size:11px;
+      opacity:.55;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .sensor-center{
+      position:relative;
+      z-index:2;
+      flex:1;
+      display:grid;
+      place-items:center;
+      padding:30px 0;
+    }
+
+    .orb-wrap{
+      position:relative;
+      width:min(25vw,330px);
+      aspect-ratio:1;
+      display:grid;
+      place-items:center;
+    }
+
+    .orb{
+      width:74%;
+      aspect-ratio:1;
+      border-radius:50%;
+      position:relative;
+      background:
+        radial-gradient(circle at 34% 27%, rgba(255,255,255,.92), rgba(239,231,190,.5) 13%, rgba(221,154,142,.7) 35%, rgba(95,73,173,.76) 68%, rgba(20,18,15,.1) 76%);
+      box-shadow:
+        0 0 85px rgba(196,174,255,.2),
+        0 0 0 1px rgba(255,255,255,.18) inset;
+      animation:breathe 7s var(--ease) infinite alternate;
+    }
+
+    .orb::before,
+    .orb::after{
+      content:"";
+      position:absolute;
+      inset:-14%;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:45% 55% 60% 40% / 44% 42% 58% 56%;
+      animation:orbit 13s linear infinite;
+    }
+
+    .orb::after{
+      inset:-28%;
+      opacity:.5;
+      animation-duration:19s;
+      animation-direction:reverse;
+    }
+
+    @keyframes breathe{
+      from{transform:scale(.96);filter:saturate(.94)}
+      to{transform:scale(1.055);filter:saturate(1.08)}
+    }
+    @keyframes orbit{to{transform:rotate(360deg)}}
+
+    .sensor-caption{
+      text-align:center;
+      margin-top:22px;
+      font-size:12px;
+      line-height:1.8;
+      opacity:.72;
+      letter-spacing:.04em;
+    }
+
+    .sensor-bottom{
+      position:relative;
+      z-index:2;
+      display:grid;
+      gap:12px;
+    }
+
+    .mode-line{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-size:11px;
+      letter-spacing:.08em;
+    }
+
+    .mode-dot{
+      width:7px;height:7px;border-radius:50%;
+      background:#c8ffa1;
+      box-shadow:0 0 12px rgba(200,255,161,.55);
+    }
+
     .reset{
-      margin-top:18px;width:100%;border:1px solid var(--line);background:white;
-      border-radius:12px;padding:11px;cursor:pointer
+      border:1px solid rgba(255,255,255,.26);
+      background:rgba(0,0,0,.16);
+      color:#fff;
+      padding:12px 14px;
+      border-radius:999px;
+      cursor:pointer;
+      transition:.2s var(--ease);
+      font-size:12px;
+      letter-spacing:.05em;
+      backdrop-filter:blur(10px);
     }
-    main{
-      min-width:0;min-height:0;height:100%;
-      display:grid;grid-template-rows:auto minmax(0,1fr) auto;
+    .reset:hover{background:rgba(255,255,255,.1)}
+
+    /* ---------- conversation side ---------- */
+    .stage{
+      min-width:0;
+      min-height:0;
+      height:100%;
+      display:grid;
+      grid-template-rows:auto minmax(0,1fr) auto;
       overflow:hidden;
     }
-    header{
-      padding:18px 24px;border-bottom:1px solid var(--line);
-      background:rgba(255,255,255,.82);backdrop-filter:blur(12px);
-      display:flex;align-items:center;justify-content:space-between;gap:16px
+
+    .stage-head{
+      padding:25px clamp(22px,4vw,56px) 18px;
+      display:flex;
+      justify-content:space-between;
+      gap:20px;
+      align-items:flex-start;
+      border-bottom:1px solid var(--hair);
     }
-    header .title{font-weight:700}
-    header .sub{font-size:12px;color:var(--muted);margin-top:4px}
-    .online{
-      display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)
+
+    .eyebrow{
+      font-size:10px;
+      letter-spacing:.16em;
+      color:var(--muted);
+      margin-bottom:8px;
+      text-transform:uppercase;
     }
-    .dot{width:8px;height:8px;border-radius:50%;background:#34a853}
+
+    .stage-title{
+      margin:0;
+      font-family:Georgia,"Times New Roman",serif;
+      font-size:clamp(23px,2.7vw,39px);
+      font-weight:400;
+      line-height:1.05;
+      letter-spacing:-.025em;
+    }
+
+    .time-state{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:var(--muted);
+      font-size:11px;
+      white-space:nowrap;
+      margin-top:5px;
+    }
+    .time-state i{
+      width:7px;height:7px;border-radius:50%;background:#3aa963;
+    }
+
     #messages{
-      min-height:0;overflow-y:auto;overscroll-behavior:contain;
-      padding:28px max(20px,calc((100% - 840px)/2));
-      scroll-behavior:smooth
+      min-height:0;
+      overflow-y:auto;
+      scroll-behavior:smooth;
+      overscroll-behavior:contain;
+      padding:34px clamp(22px,5vw,72px) 60px;
     }
-    .row{display:flex;gap:10px;margin:0 0 18px;align-items:flex-end}
-    .row.user{justify-content:flex-end}
-    .avatar{
-      width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
-      display:grid;place-items:center;background:white;flex:0 0 auto;font-size:14px
+
+    #messages::-webkit-scrollbar{width:8px}
+    #messages::-webkit-scrollbar-thumb{
+      background:rgba(17,17,15,.16);
+      border:2px solid transparent;
+      background-clip:padding-box;
+      border-radius:20px;
     }
+
+    .row{
+      display:grid;
+      margin:0 0 34px;
+      animation:enter .42s var(--ease) both;
+    }
+    @keyframes enter{
+      from{opacity:0;transform:translateY(10px)}
+      to{opacity:1;transform:none}
+    }
+
+    .row.assistant{justify-items:start}
+    .row.user{justify-items:end}
+
+    .avatar{display:none}
+
     .bubble{
-      max-width:min(720px,84%);border-radius:18px;padding:14px 16px;
-      line-height:1.75;font-size:15px;white-space:pre-wrap;word-break:break-word
+      max-width:min(760px,92%);
+      line-height:1.85;
+      font-size:15px;
+      white-space:pre-wrap;
+      word-break:break-word;
     }
+
     .assistant .bubble{
-      background:var(--soft);border:1px solid #ece9e3;border-bottom-left-radius:6px
+      padding:0;
+      background:none;
+      border:0;
     }
+
+    .assistant .bubble::before{
+      content:"AI / ART COMPASS";
+      display:block;
+      font-size:9px;
+      letter-spacing:.15em;
+      color:var(--muted);
+      margin-bottom:11px;
+    }
+
     .user .bubble{
-      background:#202020;color:white;border-bottom-right-radius:6px
+      background:var(--deep);
+      color:#f7f4ec;
+      padding:14px 18px;
+      border-radius:22px 22px 5px 22px;
+      box-shadow:0 10px 30px rgba(0,0,0,.08);
+      max-width:min(620px,88%);
     }
+
+    /* ---------- assistant rich content ---------- */
     .answer-content{white-space:normal}
-    .answer-content h2{font-size:19px;line-height:1.45;margin:8px 0 12px}
-    .answer-content h3{font-size:16px;line-height:1.5;margin:18px 0 8px}
-    .answer-content p{margin:0 0 11px;line-height:1.8}
-    .answer-content ul,.answer-content ol{margin:8px 0 13px;padding-left:1.35em}
-    .answer-content li{margin:5px 0;line-height:1.7}
-    .answer-content strong{font-weight:700}
-    .answer-content a{color:#2854b8;text-decoration:none;border-bottom:1px solid rgba(40,84,184,.3)}
-    .answer-content a:hover{border-bottom-color:#2854b8}
-    .answer-content hr{border:0;border-top:1px solid #e8e4dc;margin:18px 0}
+    .answer-content h2{
+      font-family:Georgia,"Times New Roman",serif;
+      font-size:clamp(24px,2.4vw,34px);
+      font-weight:400;
+      line-height:1.25;
+      margin:8px 0 28px;
+      letter-spacing:-.02em;
+    }
+
+    .answer-content h3{
+      margin:38px 0 14px;
+      padding-top:20px;
+      border-top:1px solid var(--hair);
+      font-size:19px;
+      line-height:1.55;
+      font-weight:600;
+    }
+
+    .answer-content p{
+      margin:0 0 12px;
+      max-width:680px;
+    }
+
+    .answer-content ul,.answer-content ol{
+      margin:10px 0 18px;
+      padding-left:1.3em;
+    }
+    .answer-content li{margin:6px 0}
+    .answer-content strong{font-weight:650}
+    .answer-content a{
+      color:inherit;
+      text-decoration:none;
+      border-bottom:1px solid rgba(17,17,15,.4);
+    }
+
     .answer-content .category-label{
       display:inline-flex;
       align-items:center;
-      gap:6px;
-      margin:4px 0 8px;
-      padding:5px 9px;
+      gap:7px;
+      font-size:10px;
+      line-height:1;
+      letter-spacing:.12em;
+      border:1px solid var(--hair);
       border-radius:999px;
-      background:#f1efe9;
-      border:1px solid #e4dfd5;
-      font-size:11px;
+      padding:7px 10px;
+      margin-right:7px;
+      vertical-align:2px;
+      background:rgba(255,255,255,.45);
+      color:#555149;
       font-weight:700;
-      letter-spacing:.04em;
-      color:#5a5751;
     }
+
+    .answer-content hr{
+      border:0;
+      border-top:1px solid var(--hair);
+      margin:28px 0;
+    }
+
     .sources{
-      margin-top:16px;padding-top:13px;border-top:1px solid #e8e4dc;
-      display:grid;gap:8px
+      margin-top:30px;
+      padding-top:16px;
+      border-top:1px solid var(--hair);
+      display:grid;
+      gap:8px;
+      max-width:680px;
     }
-    .sources-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.03em}
+    .sources-label{
+      font-size:9px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:700;
+      margin-bottom:4px;
+    }
     .source{
-      color:#2854b8;text-decoration:none;font-size:12px;line-height:1.4;
-      overflow:hidden;text-overflow:ellipsis
+      color:var(--ink);
+      text-decoration:none;
+      font-size:12px;
+      line-height:1.5;
     }
     .source:hover{text-decoration:underline}
-    .typing{display:inline-flex;gap:5px}
-    .typing i{width:6px;height:6px;background:#999;border-radius:50%;animation:pulse 1s infinite}
-    .typing i:nth-child(2){animation-delay:.13s}.typing i:nth-child(3){animation-delay:.26s}
-    @keyframes pulse{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
-    .error{color:#a32626}
+
+    .typing{
+      display:inline-flex;
+      gap:5px;
+      padding:8px 0;
+    }
+    .typing i{
+      width:6px;height:6px;border-radius:50%;
+      background:#77736c;
+      animation:pulse 1s infinite;
+    }
+    .typing i:nth-child(2){animation-delay:.14s}
+    .typing i:nth-child(3){animation-delay:.28s}
+    @keyframes pulse{
+      0%,100%{opacity:.22;transform:translateY(0)}
+      50%{opacity:1;transform:translateY(-4px)}
+    }
+
+    .error{color:#a82b25}
+
+    /* ---------- composer ---------- */
     .composer{
-      border-top:1px solid var(--line);background:rgba(255,255,255,.94);
-      padding:14px max(18px,calc((100% - 840px)/2)) 18px
+      position:relative;
+      padding:12px clamp(22px,5vw,72px) 22px;
+      background:
+        linear-gradient(to top,var(--paper) 68%,rgba(243,240,233,0));
     }
-    .input-wrap{
-      display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;
-      background:#fff;border:1px solid #dad6ce;border-radius:18px;
-      padding:8px 8px 8px 15px;box-shadow:0 8px 28px rgba(0,0,0,.04)
+
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:7px;
+      margin-bottom:10px;
     }
-    textarea{
-      width:100%;resize:none;border:0;outline:0;min-height:42px;max-height:120px;
-      padding:10px 2px;background:transparent;line-height:1.5
-    }
-    .send{
-      align-self:end;border:0;border-radius:12px;background:#202020;color:#fff;
-      min-width:70px;height:42px;padding:0 14px;cursor:pointer
-    }
-    .send:disabled{opacity:.45;cursor:not-allowed}
-    .hint{font-size:11px;color:var(--muted);margin:8px 4px 0}
-    .chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+
     .chip{
-      border:1px solid var(--line);background:#fff;border-radius:999px;
-      padding:8px 12px;cursor:pointer;font-size:12px
+      border:1px solid var(--hair);
+      background:rgba(255,255,255,.38);
+      border-radius:999px;
+      padding:8px 11px;
+      cursor:pointer;
+      font-size:11px;
+      color:#514e48;
+      transition:.2s var(--ease);
     }
-    @media(max-width:760px){
-      .app{grid-template-columns:1fr}
-      aside{display:none}
-      header{padding:14px 16px}
-      #messages{padding:20px 14px}
+    .chip:hover{background:#fff;transform:translateY(-1px)}
+
+    .input-wrap{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:10px;
+      align-items:end;
+      padding:7px 7px 7px 17px;
+      border:1px solid rgba(17,17,15,.19);
+      border-radius:24px;
+      background:rgba(255,255,255,.62);
+      backdrop-filter:blur(18px);
+      box-shadow:0 14px 35px rgba(44,39,30,.06);
+    }
+
+    textarea{
+      border:0;
+      outline:0;
+      resize:none;
+      min-height:46px;
+      max-height:130px;
+      width:100%;
+      padding:12px 0 8px;
+      background:transparent;
+      color:var(--ink);
+      line-height:1.55;
+    }
+    textarea::placeholder{color:#9a968e}
+
+    .send{
+      border:0;
+      width:48px;
+      height:48px;
+      border-radius:50%;
+      background:var(--deep);
+      color:white;
+      cursor:pointer;
+      display:grid;
+      place-items:center;
+      font-size:0;
+      transition:.22s var(--ease);
+    }
+    .send::before{
+      content:"↗";
+      font-size:20px;
+      line-height:1;
+    }
+    .send:hover{transform:rotate(5deg) scale(1.04)}
+    .send:disabled{opacity:.35;cursor:not-allowed;transform:none}
+
+    .hint{
+      margin:7px 5px 0;
+      color:var(--muted);
+      font-size:9px;
+      letter-spacing:.05em;
+    }
+
+    @media(max-width:850px){
+      .shell{
+        grid-template-columns:1fr;
+        grid-template-rows:150px minmax(0,1fr);
+      }
+      .sensor{
+        border-right:0;
+        border-bottom:1px solid rgba(255,255,255,.15);
+        padding:18px 20px;
+        display:grid;
+        grid-template-columns:1fr auto;
+        grid-template-rows:auto 1fr;
+      }
+      .sensor-center{
+        position:absolute;
+        right:5%;
+        top:-30px;
+        width:170px;
+        height:170px;
+        padding:0;
+        opacity:.78;
+      }
+      .orb-wrap{width:150px}
+      .sensor-caption{display:none}
+      .sensor-bottom{
+        align-self:end;
+        grid-column:1/2;
+        max-width:210px;
+      }
+      .reset{padding:8px 12px}
+      .stage-head{padding:17px 18px 12px}
+      .stage-title{font-size:25px}
+      #messages{padding:24px 18px 44px}
       .composer{padding:10px 12px 14px}
-      .bubble{max-width:90%}
+      .bubble{max-width:96%}
+    }
+
+    @media(max-width:520px){
+      .shell{grid-template-rows:118px minmax(0,1fr)}
+      .sensor{padding:15px 16px}
+      .brand-name{font-size:10px}
+      .sensor-center{right:-10px;top:-44px;opacity:.64}
+      .mode-line{font-size:9px}
+      .reset{font-size:10px;width:max-content}
+      .stage-head{align-items:center}
+      .stage-head .eyebrow{display:none}
+      .stage-title{font-size:20px}
+      .time-state{font-size:9px}
+      .answer-content h2{font-size:25px}
+      .answer-content h3{font-size:17px}
+      .bubble{font-size:14px}
     }
   </style>
 </head>
 <body>
-<div class="app">
-  <aside>
-    <div class="mark">✦</div>
-    <h1>Art Experience Chat</h1>
-    <p class="lead">短い対話から、その日のあなたに合う「訪れる・身近に体験する・つくる」の3つのアート体験を提案します。</p>
-    <div class="guide">
-      <strong>実在情報にも対応</strong>
-      地域や日程を伝えると、美術館・展覧会・ワークショップなどの最新情報を必要に応じてWeb検索します。
-    </div>
-    <div class="status">APIキーはこの画面には保存されません。Vercelの環境変数からサーバー側で利用します。</div>
-    <button class="reset" id="resetBtn">会話を最初から</button>
-  </aside>
-
-  <main>
-    <header>
-      <div>
-        <div class="title">アート体験コンシェルジュ</div>
-        <div class="sub">自由に答えてください。5回前後の対話を目安に提案します。</div>
+  <div class="shell">
+    <aside class="sensor">
+      <div class="brand">
+        <div class="brand-name">ART COMPASS</div>
+        <div class="brand-no">EXP. 01</div>
       </div>
-      <div class="online"><span class="dot"></span> OpenAI API・現在時刻を考慮</div>
-    </header>
 
-    <div id="messages"></div>
+      <div class="sensor-center">
+        <div>
+          <div class="orb-wrap">
+            <div class="orb"></div>
+          </div>
+          <div class="sensor-caption">
+            今の感覚から、<br>
+            アートとの距離を探します。
+          </div>
+        </div>
+      </div>
 
-    <div class="composer">
-      <div class="chips" id="chips">
-        <button class="chip" data-text="東京で探したいです">東京で探す</button>
-        <button class="chip" data-text="今日は静かに過ごしたいです">静かに過ごしたい</button>
-        <button class="chip" data-text="何か作る体験がしたいです">つくりたい</button>
+      <div class="sensor-bottom">
+        <div class="mode-line">
+          <span class="mode-dot"></span>
+          <span>LIVE / CURRENT MOMENT</span>
+        </div>
+        <button class="reset" id="resetBtn">↺ 会話を最初から</button>
       </div>
-      <div class="input-wrap">
-        <textarea id="input" rows="1" placeholder="例：今日は少し疲れています。小金井周辺で1時間くらい…"></textarea>
-        <button class="send" id="sendBtn">送信</button>
+    </aside>
+
+    <main class="stage">
+      <header class="stage-head">
+        <div>
+          <div class="eyebrow">personal art experience navigator</div>
+          <h1 class="stage-title">What art fits you, now?</h1>
+        </div>
+        <div class="time-state">
+          <i></i>
+          <span>現在時刻を考慮</span>
+        </div>
+      </header>
+
+      <div id="messages"></div>
+
+      <div class="composer">
+        <div class="chips" id="chips">
+          <button class="chip" data-text="今日は静かに過ごしたいです">静かに過ごしたい</button>
+          <button class="chip" data-text="何か新しい刺激がほしいです">新しい刺激がほしい</button>
+          <button class="chip" data-text="何かつくる体験がしたいです">つくりたい</button>
+        </div>
+
+        <div class="input-wrap">
+          <textarea id="input" rows="1" placeholder="今の気分や、使える時間、いる場所などを自由に話してください。"></textarea>
+          <button class="send" id="sendBtn" aria-label="送信">送信</button>
+        </div>
+        <div class="hint">ENTER TO SEND · SHIFT + ENTER FOR NEW LINE</div>
       </div>
-      <div class="hint">Enterで送信 / Shift + Enterで改行</div>
-    </div>
-  </main>
-</div>
+    </main>
+  </div>
 
 <script>
+
 const messagesEl = document.getElementById("messages");
 const inputEl = document.getElementById("input");
 const sendBtn = document.getElementById("sendBtn");
@@ -480,6 +894,7 @@ chipsEl.addEventListener("click", e => {
 });
 
 start();
+
 </script>
 </body>
 </html>
