@@ -104,6 +104,20 @@
     .answer-content a{color:#2854b8;text-decoration:none;border-bottom:1px solid rgba(40,84,184,.3)}
     .answer-content a:hover{border-bottom-color:#2854b8}
     .answer-content hr{border:0;border-top:1px solid #e8e4dc;margin:18px 0}
+    .answer-content .category-label{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      margin:4px 0 8px;
+      padding:5px 9px;
+      border-radius:999px;
+      background:#f1efe9;
+      border:1px solid #e4dfd5;
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:.04em;
+      color:#5a5751;
+    }
     .sources{
       margin-top:16px;padding-top:13px;border-top:1px solid #e8e4dc;
       display:grid;gap:8px
@@ -158,7 +172,7 @@
   <aside>
     <div class="mark">✦</div>
     <h1>Art Experience Chat</h1>
-    <p class="lead">短い対話から、その日のあなたに合うアート体験を3つ提案します。</p>
+    <p class="lead">短い対話から、その日のあなたに合う「訪れる・身近に体験する・つくる」の3つのアート体験を提案します。</p>
     <div class="guide">
       <strong>実在情報にも対応</strong>
       地域や日程を伝えると、美術館・展覧会・ワークショップなどの最新情報を必要に応じてWeb検索します。
@@ -226,6 +240,9 @@ function inlineMarkdown(text=""){
     return href === "#" ? label :
       `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${label}</a>`;
   });
+
+  s = s.replace(/【(訪れる|身近な場所で行う|つくる)】/g,
+    '<span class="category-label">✦ $1</span>');
 
   s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
