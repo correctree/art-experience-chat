@@ -52,10 +52,19 @@ Markdownで、読みやすく次の形式を基本とする。
 
 function safeMessages(value) {
   if (!Array.isArray(value)) return [];
+
   return value
-    .filter(m => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
+    .filter(
+      (m) =>
+        m &&
+        (m.role === "user" || m.role === "assistant") &&
+        typeof m.content === "string"
+    )
     .slice(-12)
-    .map(m => ({ role: m.role, content: m.content.slice(0, 5000) }));
+    .map((m) => ({
+      role: m.role,
+      content: m.content.slice(0, 5000)
+    }));
 }
 
 function extractAnswerAndSources(data) {
@@ -67,13 +76,23 @@ function extractAnswerAndSources(data) {
     if (item.type !== "message") continue;
 
     for (const content of item.content || []) {
-      if (content.type !== "output_text" || typeof content.text !== "string") continue;
+      if (
+        content.type !== "output_text" ||
+        typeof content.text !== "string"
+      ) {
+        continue;
+      }
 
-      answer += (answer ? "
-" : "") + content.text;
+      answer += (answer ? "\n" : "") + content.text;
 
       for (const ann of content.annotations || []) {
-        if (ann.type !== "url_citation" || !ann.url || seen.has(ann.url)) continue;
+        if (
+          ann.type !== "url_citation" ||
+          !ann.url ||
+          seen.has(ann.url)
+        ) {
+          continue;
+        }
 
         seen.add(ann.url);
         sources.push({
@@ -84,13 +103,18 @@ function extractAnswerAndSources(data) {
     }
   }
 
-  return { answer: answer.trim(), sources };
+  return {
+    answer: answer.trim(),
+    sources
+  };
 }
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
-    return res.status(405).json({ error: "POSTのみ利用できます。" });
+    return res.status(405).json({
+      error: "POSTのみ利用できます。"
+    });
   }
 
   if (!process.env.OPENAI_API_KEY) {
@@ -100,22 +124,30 @@ export default async function handler(req, res) {
   }
 
   try {
-    const body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
+    const body =
+      typeof req.body === "string"
+        ? JSON.parse(req.body)
+        : req.body || {};
+
     const messages = safeMessages(body.messages);
 
     if (!messages.length) {
-      return res.status(400).json({ error: "メッセージがありません。" });
+      return res.status(400).json({
+        error: "メッセージがありません。"
+      });
     }
 
     const apiResponse = await fetch(OPENAI_URL, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         model: "gpt-5.6",
-        reasoning: { effort: "low" },
+        reasoning: {
+          effort: "low"
+        },
         instructions: SYSTEM_PROMPT,
         input: messages,
         tools: [
@@ -132,10 +164,14 @@ export default async function handler(req, res) {
 
     if (!apiResponse.ok) {
       console.error("OpenAI API error:", data);
+
       const message =
         data?.error?.message ||
         "OpenAI APIへの接続に失敗しました。";
-      return res.status(apiResponse.status).json({ error: message });
+
+      return res.status(apiResponse.status).json({
+        error: message
+      });
     }
 
     const { answer, sources } = extractAnswerAndSources(data);
@@ -146,9 +182,13 @@ export default async function handler(req, res) {
       });
     }
 
-    return res.status(200).json({ answer, sources });
+    return res.status(200).json({
+      answer,
+      sources
+    });
   } catch (error) {
     console.error(error);
+
     return res.status(500).json({
       error: "サーバーでエラーが発生しました。"
     });
