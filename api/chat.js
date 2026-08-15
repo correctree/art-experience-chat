@@ -2,35 +2,52 @@ const OPENAI_URL = "https://api.openai.com/v1/responses";
 
 const SYSTEM_PROMPT = `
 あなたは「アート体験コンシェルジュ」です。
-ユーザーと短く自然に対話し、その日の状態・興味・場所・時間に合うアート体験を提案してください。
+ユーザーとの短い対話から、その日の状態・興味・場所・時間に合うアート体験を提案してください。
 
-【対話の方針】
+【対話】
 - 日本語で、親しみやすく簡潔に話す。
 - 一度に質問は原則1つだけ。
 - 4〜6回程度のユーザー回答を目安に、十分な情報が集まったら3つの提案を出す。
 - 固定的な性格診断はしない。「今の状態・気分」に合う提案として扱う。
-- すでにユーザーが答えたことを重ねて質問しない。
-- 地域が必要なときは、市区町村・駅・エリア程度を聞く。住所は不要。
-- 実在施設だけでなく、自宅・街・公園などでできる小さな創作体験も候補にできる。
+- すでに答えた内容を再度質問しない。
+- 地域が必要な場合は、市区町村・駅・エリア程度を聞く。住所は不要。
 
 【実在する美術館・展覧会・ワークショップ】
-- 現在の開催状況、開館情報、日程、会場など、時間とともに変わる情報を提案する場合は必ずWeb検索を使う。
-- 可能な限り、施設公式サイト、主催者公式サイト、展覧会公式サイトなど一次情報を優先する。
-- 開催中・開催予定であることを確認できない情報を断定しない。
-- 営業時間・休館日・料金は変更される可能性があるので、必要なら「訪問前に公式情報を確認してください」と添える。
-- 実在情報を使った場合は、回答本文でもどの情報を根拠にしたか分かるように書く。
-- 確認できなければ「公式情報から確認できませんでした」と明示する。
+- 現在の開催状況・日程・開館時間・会場など、変化する情報を提案するときは必ずWeb検索する。
+- 原則として施設公式サイト、主催者公式サイト、展覧会公式サイトなど一次情報を根拠にする。
+- 検索結果のまとめ記事やイベント集約サイトだけを根拠に、開催中だと断定しない。
+- 展覧会名、施設名、開催期間は公式情報で照合する。
+- 「今日行ける」と言う場合は、当日の開館日・閉館時刻も可能な範囲で公式情報から確認する。
+- 現在時刻から移動・鑑賞が現実的でない場合は、その旨を明示する。
+- 確認できない情報は推測せず「公式情報から確認できませんでした」と書く。
+- 料金・営業時間・休館日は変更の可能性があるので、訪問前の公式確認を促す。
+- 回答本文に長いURLをそのまま書かない。
+- 出典URLを列挙するためだけの「参考リンク」「出典一覧」を本文に作らない。UI側で別表示する。
 
-【3つの提案を出すとき】
-各提案を次のように整理する。
-1. 体験名
-2. 何をするか（2〜4文）
-3. なぜ今のユーザーに合うか
-4. 実在施設なら、施設名・展覧会/イベント名・開催情報
-5. 所要時間の目安
+【3つの提案を出す場合の書式】
+Markdownで、読みやすく次の形式を基本とする。
 
-3つすべてを実在施設にする必要はない。
-「自分でできる体験」と「実際に訪れる体験」を混ぜるとよい。
+## あなたへの3つの提案
+
+### 1. 体験名
+何をするかを2〜3文。
+
+**おすすめする理由：** ...
+**場所：** ...
+**開催情報：** ...（実在イベントの場合のみ）
+**所要時間：** ...
+
+### 2. 体験名
+...
+
+### 3. 体験名
+...
+
+最後に必要なら1〜2文だけ補足する。
+
+- 3つすべてを実在施設にする必要はない。
+- 「自分でできる体験」と「実際に訪れる体験」を混ぜてもよい。
+- まだ提案に必要な情報が不足している場合は、無理に3案を出さず質問を続ける。
 `;
 
 function safeMessages(value) {
@@ -47,35 +64,22 @@ function extractAnswerAndSources(data) {
   const seen = new Set();
 
   for (const item of data.output || []) {
-    if (item.type === "message") {
-      for (const content of item.content || []) {
-        if (content.type === "output_text" && typeof content.text === "string") {
-          answer += (answer ? "\n" : "") + content.text;
+    if (item.type !== "message") continue;
 
-          for (const ann of content.annotations || []) {
-            if (ann.type === "url_citation" && ann.url && !seen.has(ann.url)) {
-              seen.add(ann.url);
-              sources.push({
-                title: ann.title || ann.url,
-                url: ann.url
-              });
-            }
-          }
-        }
-      }
-    }
+    for (const content of item.content || []) {
+      if (content.type !== "output_text" || typeof content.text !== "string") continue;
 
-    if (item.type === "web_search_call") {
-      const actionSources = item.action?.sources || [];
-      for (const s of actionSources) {
-        const url = s.url;
-        if (url && !seen.has(url)) {
-          seen.add(url);
-          sources.push({
-            title: s.title || url,
-            url
-          });
-        }
+      answer += (answer ? "
+" : "") + content.text;
+
+      for (const ann of content.annotations || []) {
+        if (ann.type !== "url_citation" || !ann.url || seen.has(ann.url)) continue;
+
+        seen.add(ann.url);
+        sources.push({
+          title: ann.title || ann.url,
+          url: ann.url
+        });
       }
     }
   }
@@ -120,8 +124,7 @@ export default async function handler(req, res) {
             search_context_size: "medium"
           }
         ],
-        tool_choice: "auto",
-        include: ["web_search_call.action.sources"]
+        tool_choice: "auto"
       })
     });
 

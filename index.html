@@ -94,9 +94,19 @@
     .user .bubble{
       background:#202020;color:white;border-bottom-right-radius:6px
     }
+    .answer-content{white-space:normal}
+    .answer-content h2{font-size:19px;line-height:1.45;margin:8px 0 12px}
+    .answer-content h3{font-size:16px;line-height:1.5;margin:18px 0 8px}
+    .answer-content p{margin:0 0 11px;line-height:1.8}
+    .answer-content ul,.answer-content ol{margin:8px 0 13px;padding-left:1.35em}
+    .answer-content li{margin:5px 0;line-height:1.7}
+    .answer-content strong{font-weight:700}
+    .answer-content a{color:#2854b8;text-decoration:none;border-bottom:1px solid rgba(40,84,184,.3)}
+    .answer-content a:hover{border-bottom-color:#2854b8}
+    .answer-content hr{border:0;border-top:1px solid #e8e4dc;margin:18px 0}
     .sources{
-      margin-top:12px;padding-top:10px;border-top:1px solid #e8e4dc;
-      display:grid;gap:7px
+      margin-top:16px;padding-top:13px;border-top:1px solid #e8e4dc;
+      display:grid;gap:8px
     }
     .sources-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.03em}
     .source{
@@ -194,9 +204,102 @@ let history = [];
 let busy = false;
 
 function esc(s=""){
-  return s.replace(/[&<>"']/g, c => ({
+  return String(s).replace(/[&<>"']/g, c => ({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
   }[c]));
+}
+
+function safeUrl(url=""){
+  try{
+    const u = new URL(url);
+    return (u.protocol === "https:" || u.protocol === "http:") ? u.href : "#";
+  }catch{
+    return "#";
+  }
+}
+
+function inlineMarkdown(text=""){
+  let s = esc(text);
+
+  s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, label, url) => {
+    const href = safeUrl(url);
+    return href === "#" ? label :
+      `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+  });
+
+  s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+  return s;
+}
+
+function renderMarkdown(md=""){
+  const lines = String(md).replace(/\r\n/g,"\n").split("\n");
+  let html = "";
+  let listType = null;
+
+  function closeList(){
+    if(listType){
+      html += `</${listType}>`;
+      listType = null;
+    }
+  }
+
+  for(const raw of lines){
+    const trimmed = raw.trim();
+
+    if(!trimmed){
+      closeList();
+      continue;
+    }
+
+    if(/^---+$/.test(trimmed)){
+      closeList();
+      html += "<hr>";
+      continue;
+    }
+
+    let m = trimmed.match(/^###\s+(.+)$/);
+    if(m){
+      closeList();
+      html += `<h3>${inlineMarkdown(m[1])}</h3>`;
+      continue;
+    }
+
+    m = trimmed.match(/^##\s+(.+)$/);
+    if(m){
+      closeList();
+      html += `<h2>${inlineMarkdown(m[1])}</h2>`;
+      continue;
+    }
+
+    m = trimmed.match(/^\d+\.\s+(.+)$/);
+    if(m){
+      if(listType !== "ol"){
+        closeList();
+        html += "<ol>";
+        listType = "ol";
+      }
+      html += `<li>${inlineMarkdown(m[1])}</li>`;
+      continue;
+    }
+
+    m = trimmed.match(/^[-*]\s+(.+)$/);
+    if(m){
+      if(listType !== "ul"){
+        closeList();
+        html += "<ul>";
+        listType = "ul";
+      }
+      html += `<li>${inlineMarkdown(m[1])}</li>`;
+      continue;
+    }
+
+    closeList();
+    html += `<p>${inlineMarkdown(trimmed)}</p>`;
+  }
+
+  closeList();
+  return html;
 }
 
 function addMessage(role, text, sources=[]){
@@ -212,9 +315,17 @@ function addMessage(role, text, sources=[]){
 
   const bubble = document.createElement("div");
   bubble.className = "bubble";
-  bubble.textContent = text;
 
-  if(sources && sources.length){
+  if(role === "user"){
+    bubble.textContent = text;
+  }else{
+    const content = document.createElement("div");
+    content.className = "answer-content";
+    content.innerHTML = renderMarkdown(text);
+    bubble.appendChild(content);
+  }
+
+  if(role !== "user" && sources && sources.length){
     const sourceWrap = document.createElement("div");
     sourceWrap.className = "sources";
     const label = document.createElement("div");
@@ -222,13 +333,15 @@ function addMessage(role, text, sources=[]){
     label.textContent = "出典・公式情報";
     sourceWrap.appendChild(label);
 
-    sources.slice(0,8).forEach(s => {
+    sources.slice(0,5).forEach((s, i) => {
+      const href = safeUrl(s.url);
+      if(href === "#") return;
       const a = document.createElement("a");
       a.className = "source";
-      a.href = s.url;
+      a.href = href;
       a.target = "_blank";
       a.rel = "noopener noreferrer";
-      a.textContent = s.title || s.url;
+      a.textContent = `${i + 1}. ${s.title || new URL(href).hostname}`;
       sourceWrap.appendChild(a);
     });
     bubble.appendChild(sourceWrap);
