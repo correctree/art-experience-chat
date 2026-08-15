@@ -173,7 +173,7 @@
         <div class="title">アート体験コンシェルジュ</div>
         <div class="sub">自由に答えてください。5回前後の対話を目安に提案します。</div>
       </div>
-      <div class="online"><span class="dot"></span> OpenAI API</div>
+      <div class="online"><span class="dot"></span> OpenAI API・現在時刻を考慮</div>
     </header>
 
     <div id="messages"></div>
@@ -393,7 +393,23 @@ async function sendMessage(){
     const response = await fetch("/api/chat", {
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({messages:history})
+      body:JSON.stringify({
+        messages: history,
+        clientContext: {
+          nowISO: new Date().toISOString(),
+          localDateTime: new Intl.DateTimeFormat("ja-JP", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false,
+            timeZoneName: "short"
+          }).format(new Date()),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || ""
+        }
+      })
     });
 
     const data = await response.json().catch(() => ({}));

@@ -67,6 +67,68 @@ function safeMessages(value) {
     }));
 }
 
+function safeClientContext(value) {
+  if (!value || typeof value !== "object") {
+    return {
+      nowISO: "",
+      localDateTime: "",
+      timeZone: ""
+    };
+  }
+
+  return {
+    nowISO:
+      typeof value.nowISO === "string"
+        ? value.nowISO.slice(0, 80)
+        : "",
+    localDateTime:
+      typeof value.localDateTime === "string"
+        ? value.localDateTime.slice(0, 120)
+        : "",
+    timeZone:
+      typeof value.timeZone === "string"
+        ? value.timeZone.slice(0, 100)
+        : ""
+  };
+}
+
+function buildRuntimeInstructions(clientContext) {
+  const timeInfo = [
+    clientContext.localDateTime
+      ? `ユーザー端末の現在日時: ${clientContext.localDateTime}`
+      : "",
+    clientContext.timeZone
+      ? `ユーザー端末のタイムゾーン: ${clientContext.timeZone}`
+      : "",
+    clientContext.nowISO
+      ? `UTC換算日時: ${clientContext.nowISO}`
+      : ""
+  ].filter(Boolean).join("\n");
+
+  return `
+${SYSTEM_PROMPT}
+
+【このリクエストで使う現在時刻】
+${timeInfo || "現在時刻情報は取得できていません。必要ならユーザーに確認してください。"}
+
+【「今から行ける」の判定ルール】
+- 「今日行ける」「今から行ける」「これから行ける」などの依頼では、上記の現在日時を必ず基準にする。
+- 施設や展示の当日の開館日・最終入場時刻・閉館時刻をWeb検索で確認する。
+- 最終入場時刻が公式に確認できる場合は、閉館時刻より最終入場時刻を優先する。
+- ユーザーが出発地点を明示していない場合は、会話中のエリアからの概算移動時間を使う。推測が大きい場合は「移動時間は概算」と明記する。
+- 「今から行ける」と判定するには、原則として次を満たすこと:
+  1. 今日が開館日である
+  2. 到着予定時刻が最終入場時刻より前である
+  3. 最低30分程度の鑑賞時間を確保できる
+  4. さらに10分程度の余裕を見込める
+- 移動時間が不明で判断不能な場合は、断定せず「現在地からの移動時間が分からないため、今から間に合うかは確定できません」と伝える。
+- すでに閉館済み、最終入場後、または鑑賞時間がほとんど取れない施設は「今から行ける候補」に入れない。
+- 今日が難しいが翌日以降なら行ける場合は、「今日は難しい／明日なら候補」と明確に分けて提案する。
+- 3案を出す場合、少なくとも1案は「今この場ですぐできるアート体験」にしてもよい。
+- 時刻情報はユーザー端末由来なので、端末時刻が誤っている可能性はゼロではない。重要な来館判断では公式サイトの時刻情報を優先する。
+`;
+}
+
 function extractAnswerAndSources(data) {
   let answer = "";
   const sources = [];
@@ -130,6 +192,7 @@ export default async function handler(req, res) {
         : req.body || {};
 
     const messages = safeMessages(body.messages);
+    const clientContext = safeClientContext(body.clientContext);
 
     if (!messages.length) {
       return res.status(400).json({
@@ -148,7 +211,7 @@ export default async function handler(req, res) {
         reasoning: {
           effort: "low"
         },
-        instructions: SYSTEM_PROMPT,
+        instructions: buildRuntimeInstructions(clientContext),
         input: messages,
         tools: [
           {
