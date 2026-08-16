@@ -103,17 +103,20 @@
     }
 
     .sensor-center{
-      position:relative;
+      position:absolute;
       z-index:2;
-      flex:1;
+      left:7%;
+      top:50%;
+      transform:translateY(-50%);
+      width:min(20vw,280px);
       display:grid;
       place-items:center;
-      padding:30px 0;
+      padding:0;
     }
 
     .orb-wrap{
       position:relative;
-      width:min(25vw,330px);
+      width:min(19vw,250px);
       aspect-ratio:1;
       display:grid;
       place-items:center;
@@ -230,6 +233,27 @@
       font-weight:400;
       line-height:1.05;
       letter-spacing:-.025em;
+    }
+
+    .head-actions{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      margin-left:auto;
+    }
+
+    .reset-head{
+      margin-top:0;
+      width:auto;
+      padding:9px 13px;
+      background:rgba(17,17,15,.04);
+      color:var(--ink);
+      border:1px solid var(--hair);
+      backdrop-filter:none;
+      white-space:nowrap;
+    }
+    .reset-head:hover{
+      background:rgba(17,17,15,.08);
     }
 
     .time-state{
@@ -585,14 +609,16 @@
       }
       .sensor-center{
         position:absolute;
-        right:5%;
-        top:-30px;
-        width:170px;
-        height:170px;
+        left:18px;
+        right:auto;
+        top:50%;
+        transform:translateY(-50%);
+        width:110px;
+        height:auto;
         padding:0;
-        opacity:.78;
+        opacity:.9;
       }
-      .orb-wrap{width:150px}
+      .orb-wrap{width:105px}
       .sensor-caption{display:none}
       .sensor-bottom{
         align-self:end;
@@ -617,6 +643,8 @@
       .stage-head{align-items:center}
       .stage-head .eyebrow{display:none}
       .stage-title{font-size:20px}
+      .head-actions{gap:7px}
+      .reset-head{font-size:9px;padding:7px 9px}
       .time-state{font-size:9px}
       .answer-content h2{font-size:25px}
       .answer-content h3{font-size:17px}
@@ -651,7 +679,7 @@
           <span class="mode-dot"></span>
           <span>LIVE / CURRENT MOMENT</span>
         </div>
-        <button class="reset" id="resetBtn">↺ 会話を最初から</button>
+        
       </div>
     </aside>
 
@@ -661,9 +689,12 @@
           <div class="eyebrow">アート体験コンシェルジュ</div>
           <h1 class="stage-title">What art fits you, now?</h1>
         </div>
-        <div class="time-state">
-          <i></i>
-          <span>現在時刻を考慮</span>
+        <div class="head-actions">
+          <button class="reset reset-head" id="resetBtn">↺ 会話を最初から</button>
+          <div class="time-state">
+            <i></i>
+            <span>現在時刻を考慮</span>
+          </div>
         </div>
       </header>
 
