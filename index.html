@@ -114,6 +114,24 @@ textarea{border:0;outline:0;resize:none;background:transparent;min-height:46px;m
 }
 .note{font-size:10px!important;color:var(--muted)}
 
+
+.axis-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:8px;
+}
+.axis-chip{
+  display:inline-flex;
+  align-items:center;
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:4px 8px;
+  font-size:10px;
+  color:var(--muted);
+  background:rgba(255,255,255,.55);
+}
+
 </style>
 </head>
 <body>
@@ -175,23 +193,67 @@ const questions = [
   {key:"time",q:"今日はどれくらいの時間を使えそうですか？",options:[["15〜30分","short"],["30〜60分","medium"],["1〜2時間","long"]]}
 ];
 
+
 const DB = {
 visit:[
-{title:"小さな美術館で一作品だけを見る",desc:"近くの美術館やギャラリーを一つ選び、全体を急いで回らず、気になった一作品だけに10〜20分滞在します。",tags:{mood:["calm","tired"],mode:["view","hybrid"],place:["indoor","either"],company:["solo","either"],time:["medium","long"]},meta:["屋内","鑑賞","30〜90分"]},
-{title:"知らないギャラリーを一つ訪れる",desc:"普段選ばないジャンルの展示空間へ入り、最初に『わからない』と感じたものを一つだけ覚えて帰ります。",tags:{mood:["stim","uncertain"],mode:["view","hybrid"],place:["indoor","either"],company:["solo","together","either"],time:["medium","long"]},meta:["屋内","発見","30〜90分"]},
-{title:"公共空間のアートを見に行く",desc:"駅、広場、公園、公共施設などにある彫刻や壁画を目的地にして、作品と周囲の人・建物の関係を観察します。",tags:{mood:["calm","stim"],mode:["view","hybrid"],place:["outdoor","either"],company:["solo","together","either"],time:["medium","long"]},meta:["屋外","観察","30〜60分"]}
+{title:"小さな美術館で一作品だけを見る",desc:"近くの美術館やギャラリーを一つ選び、全体を急いで回らず、気になった一作品だけに10〜20分滞在します。",tags:{mood:["calm","tired"],mode:["view","hybrid"],place:["indoor","either"],company:["solo","either"],time:["medium","long"]},axes:["visual","space"],meta:["屋内","鑑賞","30〜90分"]},
+{title:"知らないギャラリーを一つ訪れる",desc:"普段選ばないジャンルの展示空間へ入り、最初に『わからない』と感じたものを一つだけ覚えて帰ります。",tags:{mood:["stim","uncertain"],mode:["view","hybrid"],place:["indoor","either"],company:["solo","together","either"],time:["medium","long"]},axes:["visual","language"],meta:["屋内","発見","30〜90分"]},
+{title:"公共空間のアートを見に行く",desc:"駅、広場、公園、公共施設などにある彫刻や壁画を目的地にして、作品と周囲の人・建物の関係を観察します。",tags:{mood:["calm","stim"],mode:["view","hybrid"],place:["outdoor","either"],company:["solo","together","either"],time:["medium","long"]},axes:["space","body","visual"],meta:["屋外","観察","30〜60分"]},
+{title:"建築そのものを作品として見る",desc:"美術館、図書館、駅舎、ホールなどを訪れ、展示ではなく光・素材・動線・天井の高さに注目します。",tags:{mood:["calm","stim"],mode:["view","hybrid"],place:["indoor","either"],company:["solo","together","either"],time:["medium","long"]},axes:["space","material","body"],meta:["建築","空間","30〜60分"]},
+{title:"工芸や道具の展示を見る",desc:"器、織物、家具、民具など、手でつくられたものを展示する場所を訪れ、素材と手の痕跡に注目します。",tags:{mood:["calm","tired"],mode:["view","hybrid"],place:["indoor","either"],company:["solo","together","either"],time:["medium","long"]},axes:["material","visual"],meta:["工芸","素材","30〜60分"]},
+{title:"写真展で一枚だけ持ち帰る",desc:"写真展や写真集のある場所へ行き、最後に『今日一枚だけ覚えて帰るなら』という写真を決めます。",tags:{mood:["calm","uncertain"],mode:["view"],place:["indoor","either"],company:["solo","either"],time:["medium","long"]},axes:["photo","visual"],meta:["写真","記憶","30〜60分"]},
+{title:"野外彫刻を一周して見る",desc:"公園や広場の彫刻を一つ選び、正面を決めずに周囲をゆっくり一周して、形の変化を観察します。",tags:{mood:["stim","calm"],mode:["view","hybrid"],place:["outdoor","either"],company:["solo","together","either"],time:["short","medium"]},axes:["body","space","visual"],meta:["屋外","彫刻","20〜40分"]},
+{title:"デザイン資料館で『使う形』を見る",desc:"ポスター、パッケージ、椅子、文字など、暮らしと結びついたデザインを見て、自分が使いたくなる形を一つ探します。",tags:{mood:["stim","uncertain"],mode:["view","hybrid"],place:["indoor","either"],company:["solo","together","either"],time:["medium","long"]},axes:["visual","language","material"],meta:["デザイン","観察","30〜90分"]},
+{title:"地域の小さな展示を訪ねる",desc:"大きな美術館ではなく、地域の文化施設や小さな展示スペースを訪れ、その場所らしさを観察します。",tags:{mood:["calm","uncertain"],mode:["view","hybrid"],place:["indoor","either"],company:["solo","together","either"],time:["medium","long"]},axes:["space","visual"],meta:["地域","展示","30〜60分"]},
+{title:"庭園や寺社を『構図』として見る",desc:"庭園や寺社の空間を歩き、門、石、木、影の配置を一枚の画面のように見てみます。",tags:{mood:["calm","tired"],mode:["view","hybrid"],place:["outdoor","either"],company:["solo","together","either"],time:["medium","long"]},axes:["space","body","visual"],meta:["屋外","空間","30〜90分"]},
+{title:"本屋で一冊の表紙を鑑賞する",desc:"書店の美術・写真・デザイン棚で、内容を読まずに表紙だけで惹かれる一冊を選び、その理由を考えます。",tags:{mood:["tired","uncertain"],mode:["view","hybrid"],place:["indoor","either"],company:["solo","either"],time:["short","medium"]},axes:["visual","language"],meta:["書店","デザイン","15〜30分"]},
+{title:"夜のライトアップを作品として見る",desc:"夜の建物、橋、広場などの照明を見に行き、昼とは違う色と輪郭の変化を観察します。",tags:{mood:["stim","calm"],mode:["view","hybrid"],place:["outdoor","either"],company:["solo","together","either"],time:["medium","long"]},axes:["light","space","photo"],meta:["夜","光","30〜60分"]}
 ],
 nearby:[
-{title:"光を5つ採集する",desc:"10〜30分歩き、反射、影、透過、照明など『気になった光』だけを5枚撮影します。",tags:{mood:["calm","uncertain"],mode:["view","hybrid"],place:["outdoor","either"],company:["solo","either"],time:["short","medium"]},meta:["屋外","写真","15〜30分"]},
-{title:"色の散歩",desc:"今日気になる色を一色決め、街や室内でその色だけを探します。見つけた場所を写真か言葉で3つ記録します。",tags:{mood:["stim","uncertain"],mode:["view","hybrid"],place:["outdoor","indoor","either"],company:["solo","together","either"],time:["short","medium"]},meta:["どこでも","観察","15〜30分"]},
-{title:"音の地図をつくる",desc:"5分だけ立ち止まり、近い音・遠い音・繰り返す音を順番にメモし、最後に位置関係を線で描きます。",tags:{mood:["calm","tired"],mode:["view","hybrid"],place:["outdoor","indoor","either"],company:["solo","either"],time:["short","medium"]},meta:["どこでも","聴覚","10〜20分"]}
+{title:"光を5つ採集する",desc:"10〜30分歩き、反射、影、透過、照明など『気になった光』だけを5枚撮影します。",tags:{mood:["calm","uncertain"],mode:["view","hybrid"],place:["outdoor","either"],company:["solo","either"],time:["short","medium"]},axes:["photo","visual"],meta:["屋外","写真","15〜30分"]},
+{title:"色の散歩",desc:"今日気になる色を一色決め、街や室内でその色だけを探します。見つけた場所を写真か言葉で3つ記録します。",tags:{mood:["stim","uncertain"],mode:["view","hybrid"],place:["outdoor","indoor","either"],company:["solo","together","either"],time:["short","medium"]},axes:["visual","photo","language"],meta:["どこでも","観察","15〜30分"]},
+{title:"音の地図をつくる",desc:"5分だけ立ち止まり、近い音・遠い音・繰り返す音を順番にメモし、最後に位置関係を線で描きます。",tags:{mood:["calm","tired"],mode:["view","hybrid"],place:["outdoor","indoor","either"],company:["solo","either"],time:["short","medium"]},axes:["hearing","space","language"],meta:["どこでも","聴覚","10〜20分"]},
+{title:"影だけを撮る",desc:"人物や物そのものではなく、地面や壁に落ちた影だけを5枚撮ります。時間と光の方向の違いを楽しみます。",tags:{mood:["calm","stim"],mode:["view","hybrid"],place:["outdoor","either"],company:["solo","either"],time:["short","medium"]},axes:["photo","visual","light"],meta:["屋外","写真","15〜30分"]},
+{title:"街の文字を10個集める",desc:"看板、貼り紙、マンホール、案内板など、気になった文字の形を10個集めます。意味より形に注目します。",tags:{mood:["stim","uncertain"],mode:["view","hybrid"],place:["outdoor","either"],company:["solo","together","either"],time:["medium","long"]},axes:["language","photo","visual"],meta:["文字","写真","30〜45分"]},
+{title:"丸いものだけを探す",desc:"身の回りで丸い形だけを探して写真に残します。同じ丸でも素材や大きさが違うことに注目します。",tags:{mood:["tired","uncertain"],mode:["view","hybrid"],place:["outdoor","indoor","either"],company:["solo","together","either"],time:["short","medium"]},axes:["visual","photo","material"],meta:["形","観察","15〜30分"]},
+{title:"触感を3つ記録する",desc:"木、金属、布、石など安全に触れられる素材を3つ選び、触った印象を一語ずつ書きます。",tags:{mood:["calm","tired"],mode:["hybrid","make"],place:["outdoor","indoor","either"],company:["solo","either"],time:["short","medium"]},axes:["material","body","language"],meta:["触覚","素材","15〜20分"]},
+{title:"窓の向こうを3分見る",desc:"カフェや部屋の窓辺で3分だけ外を見て、動いたものだけをメモします。",tags:{mood:["calm","tired"],mode:["view"],place:["indoor","either"],company:["solo","either"],time:["short"]},axes:["visual","language","time"],meta:["静観","観察","5〜15分"]},
+{title:"同じ場所を3つの高さから撮る",desc:"一つの場所を立った高さ、腰の高さ、地面近くの3方向から撮影し、視点の違いを比べます。",tags:{mood:["stim","uncertain"],mode:["view","hybrid"],place:["outdoor","indoor","either"],company:["solo","together","either"],time:["short","medium"]},axes:["photo","body","space"],meta:["写真","視点","15〜30分"]},
+{title:"反復するものを探す",desc:"窓、柵、タイル、椅子など、同じ形が繰り返されている場所を3つ探します。",tags:{mood:["calm","stim"],mode:["view","hybrid"],place:["outdoor","indoor","either"],company:["solo","either"],time:["short","medium"]},axes:["visual","space"],meta:["リズム","観察","15〜30分"]},
+{title:"知らない道を一回だけ曲がる",desc:"いつもの道から一度だけ知らない方向へ曲がり、そこで最初に気になったものを記録します。",tags:{mood:["stim","uncertain"],mode:["view","hybrid"],place:["outdoor","either"],company:["solo","together","either"],time:["medium","long"]},axes:["body","space","photo"],meta:["散歩","発見","30〜45分"]},
+{title:"空の色を時間差で撮る",desc:"同じ場所から10分おきに空を3回撮り、色や雲の変化を見比べます。",tags:{mood:["calm","tired"],mode:["view","hybrid"],place:["outdoor","either"],company:["solo","either"],time:["medium"]},axes:["photo","visual","time"],meta:["空","時間","30分"]}
 ],
 make:[
-{title:"3色だけで今日を描く",desc:"今日の気分に近い3色だけを選び、紙やスマホで抽象的な形をつくります。",tags:{mood:["calm","tired","uncertain"],mode:["make","hybrid"],place:["indoor","either"],company:["solo","either"],time:["short","medium"]},meta:["紙またはスマホ","色","15〜30分"]},
-{title:"5つの断片でコラージュ",desc:"レシート、包装紙、写真、メモなど身近な5つの断片を選び、意味を決めずに並べ替えて一枚の画面をつくります。",tags:{mood:["stim","uncertain"],mode:["make","hybrid"],place:["indoor","either"],company:["solo","together","either"],time:["medium","long"]},meta:["身近な素材","コラージュ","30〜45分"]},
-{title:"一筆の線で記憶を残す",desc:"今日印象に残った出来事を思い出し、ペンを紙から離さず一本の線で描きます。",tags:{mood:["calm","tired"],mode:["make","hybrid"],place:["indoor","either"],company:["solo","either"],time:["short","medium"]},meta:["紙とペン","ドローイング","10〜20分"]}
+{title:"3色だけで今日を描く",desc:"今日の気分に近い3色だけを選び、紙やスマホで抽象的な形をつくります。",tags:{mood:["calm","tired","uncertain"],mode:["make","hybrid"],place:["indoor","either"],company:["solo","either"],time:["short","medium"]},axes:["visual","material"],meta:["紙またはスマホ","色","15〜30分"]},
+{title:"5つの断片でコラージュ",desc:"レシート、包装紙、写真、メモなど身近な5つの断片を選び、意味を決めずに並べ替えて一枚の画面をつくります。",tags:{mood:["stim","uncertain"],mode:["make","hybrid"],place:["indoor","either"],company:["solo","together","either"],time:["medium","long"]},axes:["material","visual","language"],meta:["身近な素材","コラージュ","30〜45分"]},
+{title:"一筆の線で記憶を残す",desc:"今日印象に残った出来事を思い出し、ペンを紙から離さず一本の線で描きます。",tags:{mood:["calm","tired"],mode:["make","hybrid"],place:["indoor","either"],company:["solo","either"],time:["short","medium"]},axes:["body","material","visual"],meta:["紙とペン","ドローイング","10〜20分"]},
+{title:"影をなぞって形をつくる",desc:"窓辺や照明でできた影を紙になぞり、その形を別のものに見立てて少し描き足します。",tags:{mood:["calm","stim"],mode:["make","hybrid"],place:["indoor","either"],company:["solo","together","either"],time:["short","medium"]},axes:["light","visual","material"],meta:["紙とペン","影","15〜30分"]},
+{title:"写真3枚で短い物語をつくる",desc:"手元にある写真を3枚選び、順番を入れ替えて言葉のない短い物語にします。",tags:{mood:["stim","uncertain"],mode:["make","hybrid"],place:["indoor","either"],company:["solo","together","either"],time:["medium"]},axes:["photo","language","visual"],meta:["写真","物語","20〜40分"]},
+{title:"紙を切らずに折って彫刻をつくる",desc:"一枚の紙を切らず、折る・丸める・立てるだけで自立する形をつくります。",tags:{mood:["stim","calm"],mode:["make"],place:["indoor","either"],company:["solo","together","either"],time:["short","medium"]},axes:["material","body","space"],meta:["紙","立体","15〜30分"]},
+{title:"身の回りの3つを並べて作品にする",desc:"机の上から3つだけ物を選び、向きや間隔を変えながら『これで完成』と思う配置を探します。",tags:{mood:["tired","uncertain"],mode:["make","hybrid"],place:["indoor","either"],company:["solo","either"],time:["short"]},axes:["space","material","visual"],meta:["身近な物","配置","10〜20分"]},
+{title:"一つの音を30秒録音する",desc:"身の回りの音を一つ選び、30秒だけ録音します。あとで聴き返し、タイトルを一つ付けます。",tags:{mood:["calm","uncertain"],mode:["make","hybrid"],place:["outdoor","indoor","either"],company:["solo","either"],time:["short"]},axes:["hearing","language","time"],meta:["スマホ","音","10〜15分"]},
+{title:"今日の言葉を5文字だけ残す",desc:"今日の気分を文章にせず、5文字以内の言葉にして紙へ大きく書きます。",tags:{mood:["tired","calm","uncertain"],mode:["make","hybrid"],place:["indoor","either"],company:["solo","either"],time:["short"]},axes:["language","material"],meta:["文字","言葉","5〜15分"]},
+{title:"同じ形を20回描く",desc:"丸、四角、波線など一つの形を選び、20回繰り返して描きながら少しずつ変化させます。",tags:{mood:["calm","stim"],mode:["make"],place:["indoor","either"],company:["solo","together","either"],time:["short","medium"]},axes:["body","visual","material"],meta:["反復","ドローイング","15〜25分"]},
+{title:"拾ったものから小さな標本箱をつくる",desc:"葉、紙片、石など安全なものを3〜5個集め、箱や紙の上に並べてタイトルを付けます。",tags:{mood:["calm","stim"],mode:["make","hybrid"],place:["outdoor","either"],company:["solo","together","either"],time:["medium","long"]},axes:["material","space","language"],meta:["採集","標本","30〜60分"]},
+{title:"写真を一枚だけ加工して別世界にする",desc:"スマホの写真を一枚選び、トリミング・反転・色変更だけで元とは違う印象の画面にします。",tags:{mood:["stim","uncertain"],mode:["make"],place:["indoor","either"],company:["solo","either"],time:["short","medium"]},axes:["photo","visual"],meta:["スマホ","画像","15〜30分"]}
 ]
 };
+
+const AXIS_LABELS = {
+  visual:"視覚",
+  hearing:"聴覚",
+  body:"身体",
+  language:"言葉",
+  photo:"写真",
+  space:"空間",
+  material:"素材",
+  light:"光",
+  time:"時間"
+};
+
+function axisLabels(exp){
+  return (exp.axes || []).map(a => AXIS_LABELS[a] || a);
+}
 
 const viewingQuestions = [
 "まず、成果を見たときに、あなた自身の目が最初に行くところはどこですか？",
@@ -233,15 +295,62 @@ function score(x){
   for(const k in w) if(x.tags[k]?.includes(answers[k])) s+=w[k];
   return s;
 }
-function best(arr){return [...arr].sort((a,b)=>score(b)-score(a))[0]}
-function why(x){
+function topPool(arr, margin=2, limit=6){
+  const ranked=[...arr].map(x=>({x,s:score(x)})).sort((a,b)=>b.s-a.s);
+  const topScore=ranked[0]?.s ?? 0;
+  return ranked.filter(r=>r.s>=topScore-margin).slice(0,limit).map(r=>r.x);
+}
+
+function overlapCount(a,b){
+  const sa=new Set(a.axes||[]);
+  const sb=new Set(b.axes||[]);
+  let count=0;
+  sa.forEach(v=>{ if(sb.has(v)) count++; });
+  return count;
+}
+
+function trioScore(v,n,m){
+  const fit = score(v) + score(n) + score(m);
+  const allAxes = new Set([...(v.axes||[]), ...(n.axes||[]), ...(m.axes||[])]);
+  const uniqueAxisBonus = allAxes.size * 1.4;
+  const overlapPenalty = overlapCount(v,n) * 1.2 + overlapCount(v,m) * 1.2 + overlapCount(n,m) * 1.2;
+  return fit + uniqueAxisBonus - overlapPenalty;
+}
+
+function chooseTrio(){
+  const vp = topPool(DB.visit);
+  const np = topPool(DB.nearby);
+  const mp = topPool(DB.make);
+  const combos = [];
+  vp.forEach(v=>{
+    np.forEach(n=>{
+      mp.forEach(m=>{
+        combos.push({visit:v, nearby:n, make:m, s:trioScore(v,n,m)});
+      });
+    });
+  });
+  combos.sort((a,b)=>b.s-a.s);
+  const topScore = combos[0]?.s ?? 0;
+  const pool = combos.filter(c=>c.s>=topScore-1.6).slice(0,8);
+  return pool[Math.floor(Math.random()*pool.length)] || combos[0];
+}
+
+function why(x, trio){
   const r=[];
   if(x.tags.mood?.includes(answers.mood))r.push("今の気分");
   if(x.tags.mode?.includes(answers.mode))r.push("見る／つくる方向");
   if(x.tags.place?.includes(answers.place))r.push("場所");
   if(x.tags.company?.includes(answers.company))r.push("過ごし方");
   if(x.tags.time?.includes(answers.time))r.push("時間");
-  return (r.slice(0,3).join("・")||"回答全体")+"に合いやすい体験です。";
+
+  const others = trio ? [trio.visit, trio.nearby, trio.make].filter(t => t.title !== x.title) : [];
+  const distinct = (x.axes || []).filter(ax => others.every(o => !(o.axes || []).includes(ax)));
+
+  let text = (r.slice(0,3).join("・")||"回答全体")+"に合いやすい体験です。";
+  if(distinct.length){
+    text += ` また、3案全体が似すぎないように、「${distinct.slice(0,2).map(ax => AXIS_LABELS[ax] || ax).join("・")}」の軸を含む案として選んでいます。`;
+  }
+  return text;
 }
 function card(type,x,kind){
   const id="detail-"+kind;
@@ -249,8 +358,8 @@ function card(type,x,kind){
     <span class="type">${type}</span>
     <h3>${x.title}</h3>
     <p>${x.desc}</p>
-    <p><strong>なぜ今のあなたに合うか：</strong>${why(x)}</p>
-    <div class="meta">${x.meta.map(m=>`<span>${m}</span>`).join("")}</div>
+    <p><strong>なぜ今のあなたに合うか：</strong>${x.whyText || why(x)}</p>
+    <div class="axis-row">${axisLabels(x).map(label=>`<span class="axis-chip">${label}</span>`).join("")}</div><div class="meta">${x.meta.map(m=>`<span>${m}</span>`).join("")}</div>
     <button class="detail-btn" data-detail="${id}" data-kind="${kind}">詳しく見る</button>
     <div class="detail-panel" id="${id}"></div>
   </div>`
@@ -295,6 +404,10 @@ function makeReferenceArt(kind,n){
 }
 
 function detailContent(kind){
+  const trio = window.__artCompassLastTrio || null;
+  const exp = trio ? (kind==="visit" ? trio.visit : kind==="nearby" ? trio.nearby : trio.make) : null;
+  const axisLine = exp ? `<p class="note">この案の体験軸：${axisLabels(exp).join(" / ")}</p>` : "";
+
   if(kind==="visit"){
     return `<div class="detail-block">
       <h4>具体的な進め方</h4>
@@ -314,6 +427,7 @@ function detailContent(kind){
       <h4>具体例</h4>
       <p>抽象画なら「何を表しているか」より最初に目に入る色や方向を見る。写真なら、画面の外側に何が続いていそうか想像する。</p>
       <p class="note">※APIなし版では現在開催中の展覧会や施設情報は自動取得しません。</p>
+      ${axisLine}
     </div>`;
   }
 
@@ -333,6 +447,7 @@ function detailContent(kind){
         ${[0,1,2].map(i=>`<div class="reference-card"><img src="${makeReferenceArt("nearby",i)}"><span>観察記録 ${i+1}</span></div>`).join("")}
       </div>
       <p class="note">参考画像はブラウザ内で生成しています。完成形の正解ではなく、記録方法の例です。</p>
+      ${axisLine}
     </div>`;
   }
 
@@ -351,6 +466,7 @@ function detailContent(kind){
       ${[0,1,2].map(i=>`<div class="reference-card"><img src="${makeReferenceArt("make",i)}"><span>参考生成 ${i+1}</span></div>`).join("")}
     </div>
     <p class="note">参考画像は色・形・配置の考え方を示すサンプルとしてブラウザ内で生成します。</p>
+    ${axisLine}
   </div>`;
 }
 
@@ -376,10 +492,29 @@ function bindDetailButtons(){
 
 function showResults(){
   phase="results";
-  addMessage("assistant",`<div class="phase">YOUR ART EXPERIENCE</div><h2>あなたへの3つのアート体験</h2><div class="result-grid">${card("訪れる",best(DB.visit),"visit")}${card("身近な場所で行う",best(DB.nearby),"nearby")}${card("つくる",best(DB.make),"make")}</div><div class="actions"><button class="action" id="toViewing">体験後の対話型鑑賞へ</button><button class="action secondary" id="retry">もう一度選び直す</button></div>`,true);
+  const trio = chooseTrio();
+  window.__artCompassLastTrio = trio;
+  addMessage("assistant",`
+    <div class="phase">YOUR ART EXPERIENCE</div>
+    <h2>あなたへの3つのアート体験</h2>
+    <p class="note">今回は「視覚／聴覚／身体／言葉／写真／空間／素材」などの体験軸が重なりすぎないよう、3案全体のバランスも見ながら選んでいます。</p>
+    <div class="result-grid">
+      ${card("訪れる",{...trio.visit, whyText:why(trio.visit,trio)},"visit")}
+      ${card("身近な場所で行う",{...trio.nearby, whyText:why(trio.nearby,trio)},"nearby")}
+      ${card("つくる",{...trio.make, whyText:why(trio.make,trio)},"make")}
+    </div>
+    <div class="actions">
+      <button class="action" id="toViewing">体験後の対話型鑑賞へ</button>
+      <button class="action secondary" id="retry">もう一度選び直す</button>
+    </div>
+  `,true);
+
   setTimeout(()=>{
     bindDetailButtons();
-    document.getElementById("toViewing").onclick=()=>{phase="waiting";addMessage("assistant","体験が終わったら「＋ 成果を見せる」から写真や制作物をアップロードしてください。画像なしで言葉だけの振り返りもできます。")};
+    document.getElementById("toViewing").onclick=()=>{
+      phase="waiting";
+      addMessage("assistant","体験が終わったら「＋ 成果を見せる」から写真や制作物をアップロードしてください。画像なしで言葉だけの振り返りもできます。");
+    };
     document.getElementById("retry").onclick=resetAll;
   },0)
 }
