@@ -68,6 +68,52 @@ textarea{border:0;outline:0;resize:none;background:transparent;min-height:46px;m
   .result-grid{grid-template-columns:1fr}
   .composer{padding:10px 12px 16px;position:sticky;bottom:0}
 }
+
+.detail-panel{
+  display:none;
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid var(--line);
+}
+.detail-panel.open{display:grid;gap:14px}
+.detail-block{display:grid;gap:7px}
+.detail-block h4{margin:0;font-size:12px}
+.detail-block p,.detail-block li{font-size:12px;line-height:1.65}
+.detail-block ul{margin:0;padding-left:1.2em}
+.detail-btn{
+  width:max-content;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.75);
+  border-radius:999px;
+  padding:8px 11px;
+  font-size:11px;
+  cursor:pointer;
+}
+.reference-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.reference-card{
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+  background:#fff;
+}
+.reference-card img{
+  display:block;
+  width:100%;
+  aspect-ratio:1;
+  object-fit:cover;
+}
+.reference-card span{
+  display:block;
+  padding:7px 8px;
+  font-size:10px;
+  color:var(--muted);
+}
+.note{font-size:10px!important;color:var(--muted)}
+
 </style>
 </head>
 <body>
@@ -197,13 +243,142 @@ function why(x){
   if(x.tags.time?.includes(answers.time))r.push("時間");
   return (r.slice(0,3).join("・")||"回答全体")+"に合いやすい体験です。";
 }
-function card(type,x){
-  return `<div class="card"><span class="type">${type}</span><h3>${x.title}</h3><p>${x.desc}</p><p><strong>なぜ今のあなたに合うか：</strong>${why(x)}</p><div class="meta">${x.meta.map(m=>`<span>${m}</span>`).join("")}</div></div>`
+function card(type,x,kind){
+  const id="detail-"+kind;
+  return `<div class="card">
+    <span class="type">${type}</span>
+    <h3>${x.title}</h3>
+    <p>${x.desc}</p>
+    <p><strong>なぜ今のあなたに合うか：</strong>${why(x)}</p>
+    <div class="meta">${x.meta.map(m=>`<span>${m}</span>`).join("")}</div>
+    <button class="detail-btn" data-detail="${id}" data-kind="${kind}">詳しく見る</button>
+    <div class="detail-panel" id="${id}"></div>
+  </div>`
 }
+
+function svgData(svg){
+  return "data:image/svg+xml;charset=UTF-8,"+encodeURIComponent(svg);
+}
+
+function makeReferenceArt(kind,n){
+  const sets={
+    nearby:[
+      ["#f7f1e7","#376a8a","#e2b43c","#d96e55"],
+      ["#eee9df","#477b65","#d4ad3e","#77a3c5"],
+      ["#f4efe8","#252525","#c06052","#cdb56a"]
+    ],
+    make:[
+      ["#f3eadf","#2d5790","#db6e4b","#e8c745"],
+      ["#ece8df","#35563f","#b64d61","#d4a54b"],
+      ["#f4f0e7","#1e1e1e","#6f75b5","#d9825f"]
+    ]
+  };
+  const [bg,a,b,c]=(sets[kind]||sets.make)[n%3];
+
+  if(kind==="nearby"){
+    return svgData(`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600">
+      <rect width="600" height="600" fill="${bg}"/>
+      <circle cx="${120+n*70}" cy="150" r="90" fill="${a}" opacity=".8"/>
+      <rect x="80" y="280" width="${260+n*40}" height="45" rx="20" fill="${b}" opacity=".82"/>
+      <path d="M90 470 C180 350 300 510 520 360" fill="none" stroke="${c}" stroke-width="34" stroke-linecap="round"/>
+      <circle cx="470" cy="${120+n*80}" r="45" fill="${b}" opacity=".65"/>
+    </svg>`);
+  }
+
+  return svgData(`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600">
+    <rect width="600" height="600" fill="${bg}"/>
+    <path d="M70 420 Q160 ${180+n*30} 300 330 T530 210" fill="none" stroke="${a}" stroke-width="42" stroke-linecap="round"/>
+    <circle cx="${160+n*90}" cy="165" r="70" fill="${b}" opacity=".8"/>
+    <rect x="${290-n*25}" y="390" width="190" height="95" rx="28" fill="${c}" opacity=".78"/>
+    <path d="M120 510 L230 390 L350 520" fill="none" stroke="${b}" stroke-width="20" stroke-linecap="round"/>
+  </svg>`);
+}
+
+function detailContent(kind){
+  if(kind==="visit"){
+    return `<div class="detail-block">
+      <h4>具体的な進め方</h4>
+      <ul>
+        <li>近くの美術館・ギャラリーを1か所選ぶ</li>
+        <li>最初の10分は作品名や解説を読まずに見る</li>
+        <li>「なぜか気になる」作品を1点だけ選ぶ</li>
+        <li>その作品の前で10〜20分過ごす</li>
+        <li>最後に「色・形・距離・気分」から1語だけメモする</li>
+      </ul>
+    </div>
+    <div class="detail-block">
+      <h4>見るポイント</h4>
+      <p>作品そのものだけでなく、作品と自分の距離、周囲の空間、他の鑑賞者との関係も観察してみてください。</p>
+    </div>
+    <div class="detail-block">
+      <h4>具体例</h4>
+      <p>抽象画なら「何を表しているか」より最初に目に入る色や方向を見る。写真なら、画面の外側に何が続いていそうか想像する。</p>
+      <p class="note">※APIなし版では現在開催中の展覧会や施設情報は自動取得しません。</p>
+    </div>`;
+  }
+
+  if(kind==="nearby"){
+    return `<div class="detail-block">
+      <h4>具体的な進め方</h4>
+      <ul>
+        <li>15〜20分だけ歩く</li>
+        <li>テーマを1つだけ決める（光／色／音／影／文字など）</li>
+        <li>3〜5個だけ記録する</li>
+        <li>最後に、いちばん気になった1つを選ぶ</li>
+      </ul>
+    </div>
+    <div class="detail-block">
+      <h4>参考作品例</h4>
+      <div class="reference-grid">
+        ${[0,1,2].map(i=>`<div class="reference-card"><img src="${makeReferenceArt("nearby",i)}"><span>観察記録 ${i+1}</span></div>`).join("")}
+      </div>
+      <p class="note">参考画像はブラウザ内で生成しています。完成形の正解ではなく、記録方法の例です。</p>
+    </div>`;
+  }
+
+  return `<div class="detail-block">
+    <h4>具体的な進め方</h4>
+    <ul>
+      <li>使う素材を3つ以内にする</li>
+      <li>10分間は意味を決めずに手を動かす</li>
+      <li>途中で「好き／嫌い」を判断しない</li>
+      <li>最後に、いちばん気になる部分だけ残す</li>
+    </ul>
+  </div>
+  <div class="detail-block">
+    <h4>参考作品例</h4>
+    <div class="reference-grid">
+      ${[0,1,2].map(i=>`<div class="reference-card"><img src="${makeReferenceArt("make",i)}"><span>参考生成 ${i+1}</span></div>`).join("")}
+    </div>
+    <p class="note">参考画像は色・形・配置の考え方を示すサンプルとしてブラウザ内で生成します。</p>
+  </div>`;
+}
+
+function bindDetailButtons(){
+  document.querySelectorAll("[data-detail]").forEach(btn=>{
+    btn.onclick=()=>{
+      const panel=document.getElementById(btn.dataset.detail);
+      if(!panel)return;
+
+      if(panel.classList.contains("open")){
+        panel.classList.remove("open");
+        btn.textContent="詳しく見る";
+        return;
+      }
+
+      panel.innerHTML=detailContent(btn.dataset.kind);
+      panel.classList.add("open");
+      btn.textContent="閉じる";
+    };
+  });
+}
+
+
 function showResults(){
   phase="results";
-  addMessage("assistant",`<div class="phase">YOUR ART EXPERIENCE</div><h2>あなたへの3つのアート体験</h2><div class="result-grid">${card("訪れる",best(DB.visit))}${card("身近な場所で行う",best(DB.nearby))}${card("つくる",best(DB.make))}</div><div class="actions"><button class="action" id="toViewing">体験後の対話型鑑賞へ</button><button class="action secondary" id="retry">もう一度選び直す</button></div>`,true);
+  addMessage("assistant",`<div class="phase">YOUR ART EXPERIENCE</div><h2>あなたへの3つのアート体験</h2><div class="result-grid">${card("訪れる",best(DB.visit),"visit")}${card("身近な場所で行う",best(DB.nearby),"nearby")}${card("つくる",best(DB.make),"make")}</div><div class="actions"><button class="action" id="toViewing">体験後の対話型鑑賞へ</button><button class="action secondary" id="retry">もう一度選び直す</button></div>`,true);
   setTimeout(()=>{
+    bindDetailButtons();
     document.getElementById("toViewing").onclick=()=>{phase="waiting";addMessage("assistant","体験が終わったら「＋ 成果を見せる」から写真や制作物をアップロードしてください。画像なしで言葉だけの振り返りもできます。")};
     document.getElementById("retry").onclick=resetAll;
   },0)
